@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 const LINKS = [
   { href: '/', label: 'Dashboard' },
@@ -12,6 +12,14 @@ const LINKS = [
 
 export function Nav() {
   const path = usePathname();
+  const router = useRouter();
+
+  const signOut = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
+  };
+
   return (
     <nav className="top">
       <span className="brand">mehdi</span>
@@ -21,6 +29,7 @@ export function Nav() {
         </Link>
       ))}
       <span className="spacer" />
+      <a onClick={signOut} style={{ cursor: 'pointer' }}>Sign out</a>
     </nav>
   );
 }

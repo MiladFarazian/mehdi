@@ -18,9 +18,10 @@ bank/credit-card accounts, move to Plaid **Production**.
 
 ## 2. Harden before connecting real money
 
-- [ ] **Add auth.** The app currently assumes a single trusted user on
-      localhost. Before deploying publicly, gate every page/route behind
-      Supabase Auth (and 2FA). Until then, do **not** expose it on the internet.
+- [x] **Auth gate.** A single-user password gate (`middleware.ts` + `/login`)
+      protects every page and API route — **set `APP_PASSWORD`** to enable it
+      (it's off when blank). Use a strong value in production. For multiple users
+      or stronger guarantees, upgrade to Supabase Auth + 2FA.
 - [ ] **Encrypt the Plaid `access_token` at rest.** Replace the plaintext
       `plaid_items.access_token` column with Supabase Vault / pgsodium. (Marked
       `TODO(prod)` in the migration.)

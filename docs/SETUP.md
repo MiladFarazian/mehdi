@@ -14,6 +14,7 @@ Fill in `.env.local`:
 | `SUPABASE_URL` | yes | Supabase project → Settings → API → Project URL (`https://<ref>.supabase.co`) |
 | `SUPABASE_SECRET_KEY` | yes | Supabase project → Settings → API keys → **secret** key (`sb_secret_…`) |
 | `RESEND_API_KEY` + `ALERT_*` | optional | [resend.com](https://resend.com) for email alerts/digests |
+| `APP_PASSWORD` | optional (req. to deploy) | any password; gates every page + API. Blank = no gate (fine on localhost) |
 | `CRON_SECRET` | optional | any random string; protects `/api/cron` |
 
 **Advisor (chat + digests):** no key needed — it calls your local Claude Code
