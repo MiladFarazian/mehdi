@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { plaidClient } from '@/lib/plaid';
 import { supabaseAdmin } from '@/lib/supabase';
 import { syncItem } from '@/lib/sync';
+import { encryptSecret } from '@/lib/crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
     const { error } = await db.from('plaid_items').upsert(
       {
         item_id,
-        access_token,
+        access_token: encryptSecret(access_token), // encrypted at rest
         institution_name: institution_name ?? null,
         cursor: null,
         status: 'active',
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
 
     // Best-effort initial sync — sandbox may still be generating data, so don't
     // fail the link if this errors. The user can hit "Sync now" afterward.
+    // syncItem always receives the raw (decrypted) token.
     try {
       const result = await syncItem({ item_id, access_token, cursor: null });
       return NextResponse.json({ ok: true, synced: true, ...result });

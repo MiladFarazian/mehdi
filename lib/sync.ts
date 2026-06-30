@@ -2,6 +2,7 @@ import type { AccountBase, Transaction } from 'plaid';
 import { plaidClient } from './plaid';
 import { supabaseAdmin } from './supabase';
 import { isDiscretionary, normalizeMerchant } from './analysis/normalize';
+import { decryptSecret } from './crypto';
 
 // Pull accounts for an item and upsert balances.
 async function syncAccounts(itemId: string, accessToken: string): Promise<void> {
@@ -106,7 +107,12 @@ export async function syncAllItems(): Promise<SyncResult> {
 
   const totals: SyncResult = { added: 0, modified: 0, removed: 0 };
   for (const item of data || []) {
-    const r = await syncItem(item as any);
+    // Stored token is encrypted; syncItem needs the raw token.
+    const r = await syncItem({
+      item_id: (item as any).item_id,
+      access_token: decryptSecret((item as any).access_token),
+      cursor: (item as any).cursor,
+    });
     totals.added += r.added;
     totals.modified += r.modified;
     totals.removed += r.removed;
