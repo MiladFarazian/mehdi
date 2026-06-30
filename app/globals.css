@@ -152,3 +152,10 @@ table.txns td.r, table.txns th.r { text-align: right; font-variant-numeric: tabu
 .upcoming .when { font-size: 12px; font-weight: 700; color: var(--accent); }
 .upcoming .name { font-weight: 600; }
 .upcoming .cost { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ── Budgets ── */
+.budget { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.budget:last-child { border-bottom: none; }
+.budget-head { display: flex; align-items: center; justify-content: space-between; }
+.budget-head .name { font-weight: 600; }
+.budget-head .over { color: var(--high); font-weight: 600; font-variant-numeric: tabular-nums; }

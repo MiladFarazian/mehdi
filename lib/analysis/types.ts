@@ -39,7 +39,8 @@ export type InsightDraft = {
     | 'category_overspend'
     | 'merchant_spike'
     | 'lifestyle_creep'
-    | 'small_leaks';
+    | 'small_leaks'
+    | 'budget_exceeded';
   severity: 'info' | 'warn' | 'high';
   title: string;
   body: string;

@@ -32,6 +32,15 @@ export async function GET() {
       .slice(-6)
       .map((m) => ({ month: m, spend: Number((spendByMonth.get(m) || 0).toFixed(2)) }));
 
+    const cfMonths = [...new Set([...spendByMonth.keys(), ...incomeByMonth.keys()])]
+      .sort()
+      .slice(-6);
+    const monthlyCashflow = cfMonths.map((m) => {
+      const income = Number((incomeByMonth.get(m) || 0).toFixed(2));
+      const spend = Number((spendByMonth.get(m) || 0).toFixed(2));
+      return { month: m, income, spend, net: Number((income - spend).toFixed(2)) };
+    });
+
     const lcm = lastCompleteMonth(today());
     const catTotals = new Map<string, number>();
     for (const t of txns) {
@@ -61,6 +70,7 @@ export async function GET() {
       potentialSavings,
       savingsCount: savingsInsights.length,
       monthlyTrend,
+      monthlyCashflow,
       topCategories,
       lastCompleteMonth: lcm,
       income: Number((incomeByMonth.get(lcm) || 0).toFixed(2)),

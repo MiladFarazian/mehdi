@@ -226,6 +226,40 @@ function lifestyleCreep(txns: Txn[]): InsightDraft[] {
   ];
 }
 
+// Budget overspend — current (in-progress) month spend above a set limit.
+export function budgetInsights(
+  txns: Txn[],
+  budgets: { category: string; monthly_limit: number }[],
+  today: string,
+): InsightDraft[] {
+  if (!budgets.length) return [];
+  const month = monthKey(today);
+  const spend = new Map<string, number>();
+  for (const t of txns) {
+    if (t.amount <= 0 || t.pending || monthKey(t.date) !== month) continue;
+    const c = t.pfc_primary || 'UNCATEGORIZED';
+    spend.set(c, (spend.get(c) || 0) + t.amount);
+  }
+  const out: InsightDraft[] = [];
+  for (const b of budgets) {
+    const s = spend.get(b.category) || 0;
+    if (s <= b.monthly_limit) continue;
+    const label = b.category.replace(/_/g, ' ').toLowerCase();
+    out.push({
+      type: 'budget_exceeded',
+      severity: 'warn',
+      title: `Over budget on ${label}`,
+      body: `You've spent ${money(s)} of your ${money(b.monthly_limit)} ${month} budget for ${label} — ${money(
+        s - b.monthly_limit,
+      )} over.`,
+      facts: { category: b.category, spent: Number(s.toFixed(2)), limit: b.monthly_limit, month },
+      annualized_impact: null,
+      dedupe_key: `budget_exceeded:${b.category}:${month}`,
+    });
+  }
+  return out;
+}
+
 // Run every detector and return the combined, severity-ranked drafts.
 export function runDetectors(
   txns: Txn[],

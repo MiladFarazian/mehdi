@@ -22,6 +22,7 @@ type Analytics = {
   potentialSavings?: number;
   savingsCount?: number;
   monthlyTrend?: { month: string; spend: number }[];
+  monthlyCashflow?: { month: string; income: number; spend: number; net: number }[];
   topCategories?: { category: string; total: number }[];
   income?: number;
   spend?: number;
@@ -142,6 +143,35 @@ export default function Home() {
             <BarList items={(analytics.topCategories ?? []).map((c) => ({ label: c.category, value: c.total }))} />
           </section>
         </div>
+      )}
+
+      {hasData && (analytics.monthlyCashflow?.some((c) => c.income > 0) ?? false) && (
+        <section className="card">
+          <h2 style={{ margin: '0 0 4px', fontSize: 16 }}>Cash flow</h2>
+          <p className="muted" style={{ fontSize: 13 }}>Income vs. spending, net saved</p>
+          <table className="txns" style={{ marginTop: 10 }}>
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th className="r">In</th>
+                <th className="r">Out</th>
+                <th className="r">Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.monthlyCashflow!.slice().reverse().map((c) => (
+                <tr key={c.month}>
+                  <td>{c.month}</td>
+                  <td className="r" style={{ color: 'var(--good)' }}>${c.income.toFixed(0)}</td>
+                  <td className="r">${c.spend.toFixed(0)}</td>
+                  <td className="r" style={{ color: c.net >= 0 ? 'var(--good)' : 'var(--high)', fontWeight: 600 }}>
+                    {c.net >= 0 ? '+' : '−'}${Math.abs(c.net).toFixed(0)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
       )}
 
       <section className="card">
