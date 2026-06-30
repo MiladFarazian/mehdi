@@ -14,6 +14,9 @@ export async function POST() {
       // Pull up to 24 months of history (default is only 90 days) so the
       // analysis has enough to build baselines and detect price creep.
       transactions: { days_requested: 730 },
+      // When deployed with a public URL, register the webhook so new
+      // transactions sync automatically. Ignored locally if unset.
+      ...(process.env.PLAID_WEBHOOK_URL ? { webhook: process.env.PLAID_WEBHOOK_URL } : {}),
     });
     return NextResponse.json({ link_token: res.data.link_token });
   } catch (err: any) {
