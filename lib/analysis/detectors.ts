@@ -226,6 +226,40 @@ function lifestyleCreep(txns: Txn[]): InsightDraft[] {
   ];
 }
 
+// Small leaks — many small discretionary charges at one merchant that quietly
+// add up over the latest complete month.
+function smallLeaks(txns: Txn[], today: string): InsightDraft[] {
+  const month = lastCompleteMonth(today);
+  const byMerchant = new Map<string, { count: number; total: number }>();
+  for (const t of txns) {
+    if (t.amount <= 0 || t.pending || !t.is_discretionary) continue;
+    if (t.amount > 25) continue; // only small charges
+    if (monthKey(t.date) !== month) continue;
+    const m = t.normalized_merchant;
+    if (!m) continue;
+    const e = byMerchant.get(m) || { count: 0, total: 0 };
+    e.count += 1;
+    e.total += t.amount;
+    byMerchant.set(m, e);
+  }
+  const out: InsightDraft[] = [];
+  for (const [m, e] of byMerchant) {
+    if (e.count < 5 || e.total < 75) continue;
+    out.push({
+      type: 'small_leaks',
+      severity: 'info',
+      title: `Small charges add up at ${m}`,
+      body: `${e.count} small charges at ${m} in ${month} summed to ${money(e.total)} (avg ${money(
+        e.total / e.count,
+      )}). The little ones add up — about ${money(e.total * 12)}/yr at this pace.`,
+      facts: { merchant: m, count: e.count, total: Number(e.total.toFixed(2)), month },
+      annualized_impact: Number((e.total * 12).toFixed(2)),
+      dedupe_key: `small_leaks:${m}:${month}`,
+    });
+  }
+  return out;
+}
+
 // Budget overspend — current (in-progress) month spend above a set limit.
 export function budgetInsights(
   txns: Txn[],
@@ -274,6 +308,7 @@ export function runDetectors(
     ...categoryOverspend(txns, today),
     ...merchantSpike(txns, today),
     ...lifestyleCreep(txns),
+    ...smallLeaks(txns, today),
   ];
   const rank = { high: 0, warn: 1, info: 2 } as const;
   return drafts.sort((a, b) => rank[a.severity] - rank[b.severity]);

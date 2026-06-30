@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const LINKS = [
   { href: '/', label: 'Dashboard' },
@@ -32,6 +33,7 @@ export function Nav() {
         </Link>
       ))}
       <span className="spacer" />
+      <ThemeToggle />
       <a onClick={signOut} style={{ cursor: 'pointer' }}>Sign out</a>
     </nav>
   );
