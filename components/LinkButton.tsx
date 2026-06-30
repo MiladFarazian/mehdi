@@ -14,11 +14,14 @@ export function LinkButton({ onLinked }: { onLinked: () => void }) {
   }, []);
 
   const onSuccess = useCallback(
-    async (publicToken: string) => {
+    async (publicToken: string, metadata: any) => {
       await fetch('/api/plaid/exchange-public-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_token: publicToken }),
+        body: JSON.stringify({
+          public_token: publicToken,
+          institution_name: metadata?.institution?.name ?? null,
+        }),
       });
       onLinked();
     },

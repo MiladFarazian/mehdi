@@ -8,6 +8,10 @@ rein in.
 **Decisions locked:** personal use · web app first · proactive alerts + periodic
 digest + on-demand chat.
 
+> **Status: Phases 0–6 implemented.** This document is the design; see
+> [`SETUP.md`](SETUP.md) to run it and [`GOLIVE.md`](GOLIVE.md) to connect real
+> accounts.
+
 **Default stack:** Next.js (App Router, TypeScript) · Supabase (Postgres, Auth,
 Edge Functions, pg_cron) · Plaid (account linking) · Claude API (advisor) ·
 Resend (email) · Vercel (hosting).

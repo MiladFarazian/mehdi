@@ -1,60 +1,74 @@
 # mehdi
 
 A personal financial-intelligence assistant. Securely links your bank and
-credit-card accounts, builds a deep model of your spending, and surfaces
-proactive advice:
+credit-card accounts (read-only), builds a deep model of your spending, and
+surfaces proactive advice:
 
-- **Runaway subscriptions** — recurring charges that grew, duplicated, or went unused
-- **Cut-back recommendations** — categories and merchants where you're overspending vs. your own baseline
-- **Spending patterns to rein in** — lifestyle creep, impulse clusters, and anomalies, explained in plain language
+- **Runaway subscriptions** — price creep, free-trials-converted-to-paid,
+  duplicate/overlapping services, annual renewals before they hit
+- **Cut-back recommendations** — categories and merchants where you're
+  overspending vs. *your own* baseline, shown annualized
+- **Patterns to rein in** — lifestyle creep, spending spikes, small leaks
+- **Advisor** — ask Claude anything about your spending; answers are grounded
+  in your real transactions, never guessed
+- **Delivery** — proactive email alerts, a periodic digest, and on-demand chat
 
 ## Status
 
-🚧 **Phase 0** — a working Next.js + Plaid **Sandbox** slice that links a (fake)
-bank and lists its transactions. See [`docs/PLAN.md`](docs/PLAN.md) for the full
-architecture and analysis design.
+✅ **Phases 0–6 built.** Next.js + Supabase + Plaid (Sandbox) + Claude. Runs
+end-to-end against fake banks today; flip to Plaid Production to use real
+accounts (see [`docs/GOLIVE.md`](docs/GOLIVE.md)).
 
-## Running Phase 0
+## Quick start
 
-1. **Get free Plaid Sandbox keys** at <https://dashboard.plaid.com> →
-   Team Settings → Keys. Sandbox is free and uses fake banks.
-2. Copy the env template and paste your keys:
-   ```bash
-   cp .env.example .env.local
-   # edit .env.local: PLAID_CLIENT_ID and PLAID_SECRET
-   ```
-3. Install and run:
-   ```bash
-   npm install
-   npm run dev
-   ```
-4. Open <http://localhost:3000>, click **Link a bank account**, pick any bank,
-   and sign in with the sandbox credentials **`user_good`** / **`pass_good`**.
-   Recent transactions appear once linked.
+See [`docs/SETUP.md`](docs/SETUP.md). In short:
 
-> Phase 0 stores the Plaid token in a gitignored local file (`data/local/`) to
-> keep setup to a single signup. Phase 1 moves storage to Supabase Postgres with
-> the token encrypted at rest.
+```bash
+cp .env.example .env.local      # add Plaid + Supabase (+ Anthropic) keys
+# paste supabase/migrations/0001_init.sql into the Supabase SQL editor
+npm install && npm run dev
+```
 
-## High-level architecture
+Then link a bank with sandbox creds **`user_good` / `pass_good`**, hit
+**Sync** → **Run analysis**, and explore.
+
+## How it links to your accounts
+
+Plaid sits between the app and your bank and provides **read-only** transaction
++ balance data via a revocable token. The app never sees bank credentials, and
+no payment/transfer scopes are requested. The token is exchanged and stored
+server-side only.
+
+## Architecture
 
 ```
-Bank / card accounts
-        │  (read-only, tokenized)
-   Aggregator (Plaid)
-        │  transactions, balances, recurring streams
-   Ingestion + normalization
-        │
-   Analysis engine ── recurring-charge detection
-        │           ── category baselines & anomaly detection
-        │           ── subscription lifecycle tracking
-   LLM advisor (Claude) ── plain-language insights & recommendations
-        │
-   App (web / mobile) + alerts
+Plaid (read-only) ──► /api/plaid/sync ──► transactions (Supabase)
+                                              │
+        ┌─────────────────────────────────────┘
+        ▼
+  Analysis engine (lib/analysis/)
+   ├─ recurring.ts   subscription detection (cadence + amount stability)
+   ├─ baselines.ts   per-category median + MAD baselines
+   └─ detectors.ts   price creep · new recurring · duplicates · annual renewal
+                     · category overspend · merchant spikes · lifestyle creep
+        │ insights (Supabase)
+        ▼
+  Advisor (lib/advisor/, Claude) ── grounded chat (tool use) + digests
+        ▼
+  Delivery ── email alerts (Resend) · weekly digest (cron) · chat UI
 ```
+
+**Core principle:** every dollar figure is computed in code; Claude only
+explains and prioritizes precomputed facts — so numbers are always trustworthy.
+
+## Docs
+
+- [`docs/PLAN.md`](docs/PLAN.md) — full architecture & analysis design
+- [`docs/SETUP.md`](docs/SETUP.md) — environment, DB, running, first use
+- [`docs/GOLIVE.md`](docs/GOLIVE.md) — Plaid Production + hardening checklist
 
 ## Principles
 
-- **Read-only** access to accounts. No money movement.
-- **Least data**: store only what the analysis needs; encrypt sensitive fields.
+- **Read-only** account access. No money movement.
+- **Deterministic numbers**, LLM narration.
 - **You own the data**: export and delete at any time.
