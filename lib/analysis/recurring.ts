@@ -29,12 +29,19 @@ function matchPeriod(medianGap: number): (typeof PERIODS)[number] | null {
 
 // Detect recurring streams from a flat list of transactions.
 // Groups by normalized merchant, then looks for a regular cadence + stable amount.
-export function detectRecurringStreams(txns: Txn[], today: string): DetectedStream[] {
-  // Only outflows (spend) are subscriptions; ignore refunds/income.
-  const spend = txns.filter((t) => t.amount > 0 && !t.pending);
+// kind='spend' finds subscriptions (outflows); kind='income' finds recurring
+// inflows like paychecks. Amounts are stored as positive magnitudes either way.
+export function detectRecurringStreams(
+  txns: Txn[],
+  today: string,
+  kind: 'spend' | 'income' = 'spend',
+): DetectedStream[] {
+  const relevant = txns.filter((t) =>
+    !t.pending && (kind === 'income' ? t.amount < 0 : t.amount > 0),
+  );
 
   const byMerchant = new Map<string, Txn[]>();
-  for (const t of spend) {
+  for (const t of relevant) {
     const key = t.normalized_merchant;
     if (!key) continue;
     if (!byMerchant.has(key)) byMerchant.set(key, []);
@@ -55,7 +62,7 @@ export function detectRecurringStreams(txns: Txn[], today: string): DetectedStre
     const period = matchPeriod(medGap);
     if (!period) continue;
 
-    const amounts = group.map((t) => t.amount);
+    const amounts = group.map((t) => Math.abs(t.amount)); // positive magnitudes
     const amountCv = coefficientOfVariation(amounts);
     if (amountCv > AMOUNT_CV_MAX) continue; // amounts too erratic to be a subscription
 
@@ -81,14 +88,14 @@ export function detectRecurringStreams(txns: Txn[], today: string): DetectedStre
       avg_amount: Number(mean(amounts).toFixed(2)),
       first_amount: Number(amounts[0].toFixed(2)),
       last_amount: Number(amounts[amounts.length - 1].toFixed(2)),
-      amount_history: group.map((t) => ({ date: t.date, amount: t.amount })),
+      amount_history: group.map((t) => ({ date: t.date, amount: Math.abs(t.amount) })),
       occurrences: group.length,
       first_seen: firstSeen,
       last_seen: lastSeen,
       expected_next: expectedNext,
       status,
       confidence,
-      is_subscription: true,
+      is_subscription: kind === 'spend',
     });
   }
 

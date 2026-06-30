@@ -30,18 +30,21 @@ type Analytics = {
 export default function Home() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [analytics, setAnalytics] = useState<Analytics>({});
+  const [netWorth, setNetWorth] = useState<number | null>(null);
   const [txns, setTxns] = useState<Txn[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState('');
 
   const load = useCallback(async () => {
-    const [s, a, t] = await Promise.all([
+    const [s, a, acc, t] = await Promise.all([
       fetch('/api/summary').then((r) => r.json()),
       fetch('/api/analytics').then((r) => r.json()),
+      fetch('/api/accounts').then((r) => r.json()),
       fetch('/api/plaid/transactions').then((r) => r.json()),
     ]);
     setSummary(s);
     setAnalytics(a || {});
+    setNetWorth(acc?.configured ? acc.netWorth ?? null : null);
     setTxns((t.transactions || []).slice(0, 8));
   }, []);
 
@@ -102,6 +105,12 @@ export default function Home() {
       )}
 
       <div className="grid">
+        {netWorth !== null && (
+          <div className="stat">
+            <div className="label">Net worth</div>
+            <div className="value">${netWorth.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+          </div>
+        )}
         <div className="stat">
           <div className="label">Spent ({summary?.lastCompleteMonth ?? '—'})</div>
           <div className="value">${(summary?.lastMonthSpend ?? 0).toFixed(0)}</div>

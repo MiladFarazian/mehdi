@@ -83,6 +83,7 @@ export async function getStreams() {
   const { data, error } = await db
     .from('recurring_streams')
     .select('*')
+    .eq('is_subscription', true)
     .order('avg_amount', { ascending: false })
     .limit(500);
   if (error) throw new Error(error.message);
@@ -90,5 +91,21 @@ export async function getStreams() {
   return (data || []).map((s) => ({
     ...s,
     annual_cost: annualCost({ frequency: s.frequency, avg_amount: Number(s.avg_amount) }),
+  }));
+}
+
+// Recurring inflows (paychecks etc.), stored with is_subscription = false.
+export async function getIncomeStreams() {
+  const db = supabaseAdmin();
+  const { data, error } = await db
+    .from('recurring_streams')
+    .select('*')
+    .eq('is_subscription', false)
+    .order('avg_amount', { ascending: false })
+    .limit(100);
+  if (error) throw new Error(error.message);
+  return (data || []).map((s) => ({
+    ...s,
+    annual_income: annualCost({ frequency: s.frequency, avg_amount: Number(s.avg_amount) }),
   }));
 }

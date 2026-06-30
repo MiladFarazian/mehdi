@@ -10,11 +10,13 @@ export async function runAnalysis(today: string): Promise<{
   newInsights: number;
 }> {
   const txns = await getTransactions();
-  const streams = detectRecurringStreams(txns, today);
-  await upsertStreams(streams);
+  const spendStreams = detectRecurringStreams(txns, today, 'spend');
+  const incomeStreams = detectRecurringStreams(txns, today, 'income');
+  await upsertStreams([...spendStreams, ...incomeStreams]);
 
-  const drafts = runDetectors(txns, streams, today);
+  // Runaway/overspend detectors only consider subscriptions (spend streams).
+  const drafts = runDetectors(txns, spendStreams, today);
   const newInsights = await insertInsights(drafts);
 
-  return { transactions: txns.length, streams: streams.length, newInsights };
+  return { transactions: txns.length, streams: spendStreams.length, newInsights };
 }
