@@ -104,3 +104,51 @@ table.txns td.r, table.txns th.r { text-align: right; font-variant-numeric: tabu
 .composer input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
 .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .examples button { font-size: 12px; }
+
+/* ── Dashboard hero (potential savings) ── */
+.hero {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 20px; padding: 22px 24px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(63,185,80,0.16), rgba(79,140,255,0.10));
+  border: 1px solid rgba(63,185,80,0.4); text-decoration: none; color: var(--text);
+}
+.hero:hover { border-color: var(--good); }
+.hero-label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+.hero-value { font-size: 40px; font-weight: 800; letter-spacing: -1px; margin-top: 4px; }
+.hero-unit { font-size: 18px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.hero-sub { color: var(--muted); font-size: 14px; white-space: nowrap; }
+
+/* ── Two-column layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.two-col .card { margin-top: 0; }
+@media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── Bar list (categories) ── */
+.barlist { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.barrow { display: grid; grid-template-columns: 120px 1fr 56px; align-items: center; gap: 10px; }
+.barlabel { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bartrack { background: var(--tag); border-radius: 999px; height: 8px; overflow: hidden; }
+.barfill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), #6aa3ff); }
+.barval { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 600; }
+
+/* ── Trend bars (monthly) ── */
+.trend { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 18px; }
+.trendcol { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
+.trendval { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+.trendbarwrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+.trendbar { width: 100%; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #6aa3ff, var(--accent)); min-height: 2px; transition: height .3s; }
+.trendlabel { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ── Transactions filters ── */
+.filters { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.filter-input {
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 9px 12px; font-size: 14px; min-width: 180px;
+}
+
+/* ── Upcoming charges ── */
+.upcoming { display: grid; grid-template-columns: 64px 1fr auto auto; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.upcoming:last-child { border-bottom: none; }
+.upcoming .when { font-size: 12px; font-weight: 700; color: var(--accent); }
+.upcoming .name { font-weight: 600; }
+.upcoming .cost { font-variant-numeric: tabular-nums; font-weight: 600; }

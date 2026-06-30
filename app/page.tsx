@@ -1,9 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Nav } from '@/components/Nav';
 import { LinkButton } from '@/components/LinkButton';
 import { TransactionsList, type Txn } from '@/components/TransactionsList';
+import { BarList, TrendBars } from '@/components/charts';
 
 type Summary = {
   configured: boolean;
@@ -16,19 +18,31 @@ type Summary = {
   lastMonthSpend?: number;
 };
 
+type Analytics = {
+  potentialSavings?: number;
+  savingsCount?: number;
+  monthlyTrend?: { month: string; spend: number }[];
+  topCategories?: { category: string; total: number }[];
+  income?: number;
+  spend?: number;
+};
+
 export default function Home() {
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [analytics, setAnalytics] = useState<Analytics>({});
   const [txns, setTxns] = useState<Txn[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
-  const [note, setNote] = useState<string>('');
+  const [note, setNote] = useState('');
 
   const load = useCallback(async () => {
-    const [s, t] = await Promise.all([
+    const [s, a, t] = await Promise.all([
       fetch('/api/summary').then((r) => r.json()),
+      fetch('/api/analytics').then((r) => r.json()),
       fetch('/api/plaid/transactions').then((r) => r.json()),
     ]);
     setSummary(s);
-    setTxns(t.transactions || []);
+    setAnalytics(a || {});
+    setTxns((t.transactions || []).slice(0, 8));
   }, []);
 
   useEffect(() => {
@@ -40,8 +54,7 @@ export default function Home() {
       setBusy(label);
       setNote('');
       try {
-        const r = await fetch(url, { method: 'POST' });
-        const d = await r.json();
+        const d = await fetch(url, { method: 'POST' }).then((r) => r.json());
         if (d.error) setNote(d.error);
         else if (label === 'sync') setNote(`Synced: +${d.added} new, ${d.modified} updated.`);
         else if (label === 'analyze')
@@ -58,6 +71,7 @@ export default function Home() {
 
   const configured = summary?.configured;
   const hasData = (summary?.transactions ?? 0) > 0;
+  const savings = analytics.potentialSavings ?? 0;
 
   return (
     <main className="container">
@@ -66,8 +80,7 @@ export default function Home() {
       {summary && !configured && (
         <div className="banner">
           Supabase isn&apos;t configured yet. Add <code>SUPABASE_URL</code> to{' '}
-          <code>.env.local</code> and apply <code>supabase/migrations/0001_init.sql</code> in the
-          Supabase SQL editor, then restart <code>npm run dev</code>.
+          <code>.env.local</code> and apply the migration, then restart.
         </div>
       )}
 
@@ -75,6 +88,18 @@ export default function Home() {
         <h1>Dashboard</h1>
         <p className="muted">Your spending at a glance.</p>
       </header>
+
+      {savings > 0 && (
+        <Link href="/insights" className="hero">
+          <div>
+            <div className="hero-label">Potential savings we found</div>
+            <div className="hero-value">${savings.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span className="hero-unit">/yr</span></div>
+          </div>
+          <div className="hero-sub">
+            across {analytics.savingsCount ?? 0} insight{(analytics.savingsCount ?? 0) === 1 ? '' : 's'} →
+          </div>
+        </Link>
+      )}
 
       <div className="grid">
         <div className="stat">
@@ -95,9 +120,24 @@ export default function Home() {
         </div>
       </div>
 
+      {hasData && (
+        <div className="two-col">
+          <section className="card">
+            <h2 style={{ margin: '0 0 4px', fontSize: 16 }}>Monthly spending</h2>
+            <p className="muted" style={{ fontSize: 13 }}>Last {analytics.monthlyTrend?.length ?? 0} months</p>
+            <TrendBars data={analytics.monthlyTrend ?? []} />
+          </section>
+          <section className="card">
+            <h2 style={{ margin: '0 0 4px', fontSize: 16 }}>Where it went</h2>
+            <p className="muted" style={{ fontSize: 13 }}>Top categories, {analytics.income ? `income $${analytics.income.toFixed(0)} · ` : ''}{summary?.lastCompleteMonth}</p>
+            <BarList items={(analytics.topCategories ?? []).map((c) => ({ label: c.category, value: c.total }))} />
+          </section>
+        </div>
+      )}
+
       <section className="card">
         <div className="row">
-          <h2>Accounts &amp; data</h2>
+          <h2 style={{ margin: 0, fontSize: 16 }}>Accounts &amp; data</h2>
         </div>
         <p className="muted" style={{ marginTop: 8 }}>
           {hasData
@@ -119,8 +159,8 @@ export default function Home() {
       {hasData && (
         <section className="card">
           <div className="row">
-            <h2>Recent transactions</h2>
-            <button className="btn ghost" onClick={load}>Refresh</button>
+            <h2 style={{ margin: 0, fontSize: 16 }}>Recent transactions</h2>
+            <Link className="btn ghost" href="/transactions">View all →</Link>
           </div>
           <TransactionsList txns={txns} />
         </section>

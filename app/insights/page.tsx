@@ -37,6 +37,12 @@ export default function InsightsPage() {
     });
   };
 
+  // Headline savings = actionable subscription fixes only (matches /api/analytics).
+  const FIXABLE = new Set(['price_creep', 'duplicate_services', 'new_recurring', 'annual_renewal']);
+  const potentialSavings = insights
+    .filter((i) => i.status !== 'dismissed' && i.annualized_impact && FIXABLE.has(i.type))
+    .reduce((a, i) => a + Number(i.annualized_impact), 0);
+
   return (
     <main className="container">
       <Nav />
@@ -44,6 +50,14 @@ export default function InsightsPage() {
         <h1>Insights</h1>
         <p className="muted">Runaway subscriptions, overspend, and patterns to rein in.</p>
       </header>
+
+      {potentialSavings > 0 && (
+        <div className="banner" style={{ borderColor: 'var(--good)' }}>
+          Acting on these could save you about{' '}
+          <strong>${potentialSavings.toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr</strong>{' '}
+          <span className="muted">(estimated — some findings may overlap).</span>
+        </div>
+      )}
 
       <section style={{ marginTop: 8 }}>
         {loading && <p className="muted card">Loading…</p>}

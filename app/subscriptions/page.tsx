@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Nav } from '@/components/Nav';
 
 type Sub = {
@@ -15,6 +15,11 @@ type Sub = {
   annual_cost: number;
   user_status: string | null;
 };
+
+function daysUntil(date: string): number {
+  const ms = new Date(date).getTime() - Date.now();
+  return Math.ceil(ms / 86_400_000);
+}
 
 export default function SubscriptionsPage() {
   const [subs, setSubs] = useState<Sub[]>([]);
@@ -42,6 +47,14 @@ export default function SubscriptionsPage() {
     });
   };
 
+  const upcoming = useMemo(
+    () =>
+      subs
+        .filter((s) => s.expected_next && daysUntil(s.expected_next) >= 0 && daysUntil(s.expected_next) <= 30)
+        .sort((a, b) => (a.expected_next! < b.expected_next! ? -1 : 1)),
+    [subs],
+  );
+
   return (
     <main className="container">
       <Nav />
@@ -51,6 +64,25 @@ export default function SubscriptionsPage() {
           {subs.length} detected · ${totals.monthlyTotal.toFixed(0)}/mo · ${totals.annualTotal.toFixed(0)}/yr
         </p>
       </header>
+
+      {upcoming.length > 0 && (
+        <section className="card">
+          <h2 style={{ margin: '0 0 4px', fontSize: 16 }}>Upcoming charges · next 30 days</h2>
+          <div style={{ marginTop: 8 }}>
+            {upcoming.map((s) => {
+              const d = daysUntil(s.expected_next!);
+              return (
+                <div className="upcoming" key={s.id}>
+                  <span className="when">{d === 0 ? 'today' : `in ${d}d`}</span>
+                  <span className="name">{s.display_name}</span>
+                  <span className="muted" style={{ fontSize: 13 }}>{s.expected_next}</span>
+                  <span className="cost">${Number(s.avg_amount).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="card">
         {loading && <p className="muted">Loading…</p>}
@@ -66,30 +98,18 @@ export default function SubscriptionsPage() {
                 <div className="meta">
                   {s.frequency} · ${Number(s.avg_amount).toFixed(2)}
                   {hike && (
-                    <span style={{ color: 'var(--warn)' }}>
-                      {' '}
-                      · ↑ from ${Number(s.first_amount).toFixed(2)}
-                    </span>
+                    <span style={{ color: 'var(--warn)' }}> · ↑ from ${Number(s.first_amount).toFixed(2)}</span>
                   )}
                   {s.expected_next && <span> · next {s.expected_next}</span>}
                 </div>
                 <div className="fb" style={{ marginTop: 8 }}>
-                  <button
-                    className={`chip ${s.user_status === 'using' ? 'on' : ''}`}
-                    onClick={() => setStatus(s.id, 'using')}
-                  >
+                  <button className={`chip ${s.user_status === 'using' ? 'on' : ''}`} onClick={() => setStatus(s.id, 'using')}>
                     Still using
                   </button>
-                  <button
-                    className={`chip ${s.user_status === 'not_using' ? 'on' : ''}`}
-                    onClick={() => setStatus(s.id, 'not_using')}
-                  >
+                  <button className={`chip ${s.user_status === 'not_using' ? 'on' : ''}`} onClick={() => setStatus(s.id, 'not_using')}>
                     Not using
                   </button>
-                  <button
-                    className={`chip ${s.user_status === 'cancel' ? 'on' : ''}`}
-                    onClick={() => setStatus(s.id, 'cancel')}
-                  >
+                  <button className={`chip ${s.user_status === 'cancel' ? 'on' : ''}`} onClick={() => setStatus(s.id, 'cancel')}>
                     Plan to cancel
                   </button>
                 </div>
