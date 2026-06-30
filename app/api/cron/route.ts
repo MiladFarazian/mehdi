@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { syncAllItems } from '@/lib/sync';
 import { runAnalysis } from '@/lib/analysis/run';
 import { maybeSendAlerts } from '@/lib/alerts';
-import { buildDigestFacts } from '@/lib/advisor/digestFacts';
-import { writeDigest, claudeConfigured } from '@/lib/advisor/claude';
+import { generateDigest } from '@/lib/advisor/digest';
 import { sendEmail } from '@/lib/email';
 import { today } from '@/lib/today';
 
@@ -24,11 +23,10 @@ export async function GET(req: Request) {
     const alerted = await maybeSendAlerts();
 
     let digest = false;
-    if (sendDigest && claudeConfigured()) {
-      const facts = await buildDigestFacts();
-      const text = await writeDigest(facts);
+    if (sendDigest) {
+      const { digest: text, facts } = await generateDigest();
       await sendEmail(
-        `mehdi — your ${facts.period} spending digest`,
+        `mehdi — your ${(facts as any).period} spending digest`,
         `<div style="font-family:system-ui;white-space:pre-wrap">${text}</div>`,
       );
       digest = true;

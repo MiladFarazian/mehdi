@@ -13,12 +13,17 @@ Fill in `.env.local`:
 | `PLAID_CLIENT_ID`, `PLAID_SECRET` | yes | [dashboard.plaid.com](https://dashboard.plaid.com) → Team Settings → Keys (Sandbox) |
 | `SUPABASE_URL` | yes | Supabase project → Settings → API → Project URL (`https://<ref>.supabase.co`) |
 | `SUPABASE_SECRET_KEY` | yes | Supabase project → Settings → API keys → **secret** key (`sb_secret_…`) |
-| `ANTHROPIC_API_KEY` | for advisor | [console.anthropic.com](https://console.anthropic.com) |
 | `RESEND_API_KEY` + `ALERT_*` | optional | [resend.com](https://resend.com) for email alerts/digests |
 | `CRON_SECRET` | optional | any random string; protects `/api/cron` |
 
-The app runs fully without the optional keys — the advisor and email simply
-stay off until their keys are present.
+**Advisor (chat + digests):** no key needed — it calls your local Claude Code
+CLI, so it runs on your **Claude Code / Max subscription**. Just make sure the
+CLI is installed and logged in: `claude login`. (Only works where the CLI is
+authenticated — your machine, not a cloud deploy.) Optional: `CLAUDE_CODE_MODEL`
+(default `sonnet`), `CLAUDE_BIN` (path to the binary).
+
+The app runs fully without the optional keys — email simply stays off until its
+keys are present.
 
 ## 2. Database
 

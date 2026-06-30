@@ -26,6 +26,12 @@ bank/credit-card accounts, move to Plaid **Production**.
       `TODO(prod)` in the migration.)
 - [ ] **Verify Plaid webhook JWTs** in `/api/plaid/webhook` (marked
       `NOTE(prod)`), so only Plaid can trigger syncs.
+- [ ] **Advisor on a cloud deploy.** The advisor uses your local Claude Code
+      CLI, which won't exist on Vercel. Either keep the advisor a local-only
+      feature (run the app on your machine), mint a `CLAUDE_CODE_OAUTH_TOKEN`
+      (`claude setup-token`) and run it on a host where the CLI is installed, or
+      swap `lib/advisor/claudeCode.ts` for the Anthropic API (`@anthropic-ai/sdk`
+      + `ANTHROPIC_API_KEY`) for a portable, metered path.
 - [ ] **Set `CRON_SECRET`** in the deploy environment.
 - [ ] **Rotate any secrets** that were ever shared in chat/docs.
 - [ ] Confirm RLS is on (it is, in the migration) and that the secret key is

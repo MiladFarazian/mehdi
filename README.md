@@ -10,7 +10,8 @@ surfaces proactive advice:
   overspending vs. *your own* baseline, shown annualized
 - **Patterns to rein in** — lifestyle creep, spending spikes, small leaks
 - **Advisor** — ask Claude anything about your spending; answers are grounded
-  in your real transactions, never guessed
+  in your real transactions, never guessed. Runs on your **Claude Code / Max
+  subscription** (via the local `claude` CLI), so there's no separate API bill
 - **Delivery** — proactive email alerts, a periodic digest, and on-demand chat
 
 ## Status
@@ -53,7 +54,7 @@ Plaid (read-only) ──► /api/plaid/sync ──► transactions (Supabase)
                      · category overspend · merchant spikes · lifestyle creep
         │ insights (Supabase)
         ▼
-  Advisor (lib/advisor/, Claude) ── grounded chat (tool use) + digests
+  Advisor (lib/advisor/, Claude Code CLI) ── grounded chat + digests
         ▼
   Delivery ── email alerts (Resend) · weekly digest (cron) · chat UI
 ```
