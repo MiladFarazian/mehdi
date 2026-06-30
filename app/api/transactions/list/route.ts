@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase';
+import { monthStart, nextMonthStart } from '@/lib/analysis/stats';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export async function GET(req: Request) {
 
     if (search) q = q.or(`merchant_name.ilike.%${search}%,name.ilike.%${search}%`);
     if (category) q = q.eq('pfc_primary', category);
-    if (month) q = q.gte('date', `${month}-01`).lte('date', `${month}-31`);
+    if (month) q = q.gte('date', monthStart(month)).lt('date', nextMonthStart(month));
     q = q.range(offset, offset + limit - 1);
 
     const { data, error, count } = await q;

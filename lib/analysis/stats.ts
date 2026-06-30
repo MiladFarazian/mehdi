@@ -65,3 +65,15 @@ export function addDays(date: string, days: number): string {
 export function monthKey(date: string): string {
   return date.slice(0, 7); // YYYY-MM
 }
+
+// First day of `month` (YYYY-MM) and first day of the NEXT month — use as a
+// half-open [start, endExclusive) range so date filters work for every month
+// length (avoids invalid bounds like 2026-06-31).
+export function monthStart(month: string): string {
+  return `${month}-01`;
+}
+export function nextMonthStart(month: string): string {
+  const d = new Date(`${month}-01T00:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  return d.toISOString().slice(0, 10);
+}

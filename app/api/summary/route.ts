@@ -3,6 +3,7 @@ import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase';
 import { annualCost } from '@/lib/analysis/recurring';
 import { lastCompleteMonth } from '@/lib/analysis/baselines';
 import { NON_SPEND_CATEGORIES } from '@/lib/analysis/normalize';
+import { monthStart, nextMonthStart } from '@/lib/analysis/stats';
 import { today } from '@/lib/today';
 
 export const dynamic = 'force-dynamic';
@@ -21,8 +22,8 @@ export async function GET() {
       db
         .from('transactions')
         .select('amount, pfc_primary')
-        .gte('date', `${month}-01`)
-        .lte('date', `${month}-31`),
+        .gte('date', monthStart(month))
+        .lt('date', nextMonthStart(month)),
     ]);
 
     const subs = streams.data || [];

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase';
 import { budgetsTableExists, deleteBudget, listBudgets, upsertBudget } from '@/lib/budgets';
-import { monthKey } from '@/lib/analysis/stats';
+import { monthKey, monthStart, nextMonthStart } from '@/lib/analysis/stats';
 import { NON_SPEND_CATEGORIES } from '@/lib/analysis/normalize';
 import { today } from '@/lib/today';
 
@@ -22,8 +22,8 @@ export async function GET() {
         .from('transactions')
         .select('amount, pfc_primary')
         .gt('amount', 0)
-        .gte('date', `${month}-01`)
-        .lte('date', `${month}-31`),
+        .gte('date', monthStart(month))
+        .lt('date', nextMonthStart(month)),
     ]);
 
     const spend = new Map<string, number>();
