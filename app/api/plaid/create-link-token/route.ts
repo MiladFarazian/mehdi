@@ -11,6 +11,9 @@ export async function POST() {
       products: [Products.Transactions],
       country_codes: [CountryCode.Us],
       language: 'en',
+      // Pull up to 24 months of history (default is only 90 days) so the
+      // analysis has enough to build baselines and detect price creep.
+      transactions: { days_requested: 730 },
     });
     return NextResponse.json({ link_token: res.data.link_token });
   } catch (err: any) {

@@ -13,7 +13,15 @@ export function supabaseAdmin(): SupabaseClient {
     );
   }
   if (!client) {
-    client = createClient(url, secret, { auth: { persistSession: false } });
+    client = createClient(url, secret, {
+      auth: { persistSession: false },
+      // Next.js patches global fetch and caches GET responses by default, which
+      // would make supabase reads serve stale data. Force every request fresh.
+      global: {
+        fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+          fetch(input, { ...init, cache: 'no-store' }),
+      },
+    });
   }
   return client;
 }
