@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Nav } from '@/components/Nav';
 import { LinkButton } from '@/components/LinkButton';
+import { Onboarding } from '@/components/Onboarding';
 import { TransactionsList, type Txn } from '@/components/TransactionsList';
 import { BarList, TrendBars } from '@/components/charts';
 
@@ -99,6 +100,10 @@ export default function Home() {
         <p className="muted">Your spending at a glance.</p>
       </header>
 
+      {configured && !hasData && (
+        <Onboarding summary={summary} busy={busy} onReload={load} onRun={run} note={note} />
+      )}
+
       {savings > 0 && (
         <Link href="/insights" className="hero">
           <div>
@@ -111,30 +116,32 @@ export default function Home() {
         </Link>
       )}
 
-      <div className="grid">
-        {netWorth !== null && (
+      {hasData && (
+        <div className="grid">
+          {netWorth !== null && (
+            <div className="stat">
+              <div className="label">Net worth</div>
+              <div className="value">${netWorth.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            </div>
+          )}
           <div className="stat">
-            <div className="label">Net worth</div>
-            <div className="value">${netWorth.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div className="label">Spent ({summary?.lastCompleteMonth ?? '—'})</div>
+            <div className="value">${(summary?.lastMonthSpend ?? 0).toFixed(0)}</div>
           </div>
-        )}
-        <div className="stat">
-          <div className="label">Spent ({summary?.lastCompleteMonth ?? '—'})</div>
-          <div className="value">${(summary?.lastMonthSpend ?? 0).toFixed(0)}</div>
+          <div className="stat">
+            <div className="label">Subscriptions</div>
+            <div className="value">{summary?.subscriptions ?? 0}</div>
+          </div>
+          <div className="stat">
+            <div className="label">Subs / month</div>
+            <div className="value">${(summary?.monthlySubscriptionCost ?? 0).toFixed(0)}</div>
+          </div>
+          <div className="stat">
+            <div className="label">New insights</div>
+            <div className="value">{summary?.newInsights ?? 0}</div>
+          </div>
         </div>
-        <div className="stat">
-          <div className="label">Subscriptions</div>
-          <div className="value">{summary?.subscriptions ?? 0}</div>
-        </div>
-        <div className="stat">
-          <div className="label">Subs / month</div>
-          <div className="value">${(summary?.monthlySubscriptionCost ?? 0).toFixed(0)}</div>
-        </div>
-        <div className="stat">
-          <div className="label">New insights</div>
-          <div className="value">{summary?.newInsights ?? 0}</div>
-        </div>
-      </div>
+      )}
 
       {hasData && (
         <div className="two-col">
@@ -199,26 +206,26 @@ export default function Home() {
         </section>
       )}
 
-      <section className="card">
-        <div className="row">
-          <h2 style={{ margin: 0, fontSize: 16 }}>Accounts &amp; data</h2>
-        </div>
-        <p className="muted" style={{ marginTop: 8 }}>
-          {hasData
-            ? `${summary?.accounts ?? 0} account(s), ${summary?.transactions ?? 0} transactions.`
-            : 'No account linked yet. In Plaid Link pick any bank and sign in with user_good / pass_good.'}
-        </p>
-        <div className="actions">
-          <LinkButton onLinked={load} />
-          <button className="btn ghost" disabled={!!busy} onClick={() => run('sync', '/api/plaid/sync')}>
-            {busy === 'sync' ? 'Syncing…' : 'Sync now'}
-          </button>
-          <button className="btn ghost" disabled={!!busy} onClick={() => run('analyze', '/api/analyze')}>
-            {busy === 'analyze' ? 'Analyzing…' : 'Run analysis'}
-          </button>
-        </div>
-        {note && <p className="muted" style={{ marginTop: 10 }}>{note}</p>}
-      </section>
+      {hasData && (
+        <section className="card">
+          <div className="row">
+            <h2 style={{ margin: 0, fontSize: 16 }}>Accounts &amp; data</h2>
+          </div>
+          <p className="muted" style={{ marginTop: 8 }}>
+            {summary?.accounts ?? 0} account(s), {summary?.transactions ?? 0} transactions.
+          </p>
+          <div className="actions">
+            <LinkButton onLinked={load} />
+            <button className="btn ghost" disabled={!!busy} onClick={() => run('sync', '/api/plaid/sync')}>
+              {busy === 'sync' ? 'Syncing…' : 'Sync now'}
+            </button>
+            <button className="btn ghost" disabled={!!busy} onClick={() => run('analyze', '/api/analyze')}>
+              {busy === 'analyze' ? 'Analyzing…' : 'Run analysis'}
+            </button>
+          </div>
+          {note && <p className="muted" style={{ marginTop: 10 }}>{note}</p>}
+        </section>
+      )}
 
       {hasData && (
         <section className="card">

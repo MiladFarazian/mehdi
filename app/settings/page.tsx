@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Nav } from '@/components/Nav';
 
 type Status = {
@@ -78,6 +79,9 @@ export default function SettingsPage() {
             </div>
           </>
         )}
+        <div style={{ marginTop: 12 }}>
+          <Link href="/health" className="btn ghost">Run full health check →</Link>
+        </div>
       </section>
 
       <section className="card" style={{ borderColor: 'var(--high)' }}>
