@@ -17,7 +17,11 @@ export async function GET() {
     const [txnCount, accounts, streams, newInsights, monthTxns] = await Promise.all([
       db.from('transactions').select('transaction_id', { count: 'exact', head: true }),
       db.from('accounts').select('account_id', { count: 'exact', head: true }),
-      db.from('recurring_streams').select('frequency, avg_amount'),
+      db
+        .from('recurring_streams')
+        .select('frequency, avg_amount')
+        .eq('is_subscription', true)
+        .in('status', ['active', 'late']),
       db.from('insights').select('id', { count: 'exact', head: true }).eq('status', 'new'),
       db
         .from('transactions')

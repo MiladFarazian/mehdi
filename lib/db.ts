@@ -92,6 +92,7 @@ export async function getStreams() {
     .from('recurring_streams')
     .select('*')
     .eq('is_subscription', true)
+    .in('status', ['active', 'late']) // only currently-charged subscriptions
     .order('avg_amount', { ascending: false })
     .limit(500);
   if (error) throw new Error(error.message);

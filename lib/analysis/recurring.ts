@@ -95,9 +95,17 @@ export function detectRecurringStreams(
     const firstSeen = group[0].date;
     const lastSeen = group[group.length - 1].date;
     const expectedNext = addDays(lastSeen, period.days);
+    // A subscription is only "active" if it's been charged within ~1.5 billing
+    // cycles. Anything charged longer ago has effectively ended/been canceled —
+    // don't count old historical charges as a current subscription.
+    const daysSinceLast = daysBetween(lastSeen, today);
     const overdueBy = daysBetween(expectedNext, today);
     const status: DetectedStream['status'] =
-      overdueBy > period.days * INTERVAL_TOLERANCE + 5 ? 'late' : 'active';
+      daysSinceLast > period.days * 1.5
+        ? 'ended'
+        : overdueBy > period.days * INTERVAL_TOLERANCE + 5
+          ? 'late'
+          : 'active';
 
     streams.push({
       normalized_merchant: merchant,

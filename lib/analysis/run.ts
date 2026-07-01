@@ -15,8 +15,10 @@ export async function runAnalysis(today: string): Promise<{
   const incomeStreams = detectRecurringStreams(txns, today, 'income');
   await upsertStreams([...spendStreams, ...incomeStreams]);
 
-  // Runaway/overspend detectors only consider subscriptions (spend streams).
-  const drafts = runDetectors(txns, spendStreams, today);
+  // Runaway/overspend detectors only consider active subscriptions (spend
+  // streams still being charged) — not old/ended ones from historical data.
+  const activeStreams = spendStreams.filter((s) => s.status !== 'ended');
+  const drafts = runDetectors(txns, activeStreams, today);
   const budgetDrafts = budgetInsights(txns, await listBudgets(), today);
   const newInsights = await insertInsights([...drafts, ...budgetDrafts]);
 
