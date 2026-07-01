@@ -2,6 +2,7 @@ import type { AccountBase, Transaction } from 'plaid';
 import { plaidClient } from './plaid';
 import { supabaseAdmin } from './supabase';
 import { isDiscretionary, normalizeMerchant } from './analysis/normalize';
+import { inferCategory } from './analysis/categorize';
 import { decryptSecret } from './crypto';
 
 // Pull accounts for an item and upsert balances.
@@ -27,6 +28,11 @@ async function syncAccounts(itemId: string, accessToken: string): Promise<void> 
 }
 
 function toRow(t: Transaction) {
+  // Fall back to our own categorizer when Plaid returns OTHER/null.
+  const primary = inferCategory(
+    `${t.merchant_name || ''} ${t.name || ''}`,
+    t.personal_finance_category?.primary ?? null,
+  );
   return {
     transaction_id: t.transaction_id,
     account_id: t.account_id,
@@ -37,9 +43,9 @@ function toRow(t: Transaction) {
     name: t.name,
     merchant_name: t.merchant_name,
     normalized_merchant: normalizeMerchant(t.merchant_name || t.name),
-    pfc_primary: t.personal_finance_category?.primary ?? null,
+    pfc_primary: primary,
     pfc_detailed: t.personal_finance_category?.detailed ?? null,
-    is_discretionary: isDiscretionary(t.personal_finance_category?.primary),
+    is_discretionary: isDiscretionary(primary),
     pending: t.pending,
   };
 }
