@@ -60,7 +60,7 @@ export function Onboarding({ summary, busy, onReload, onRun, note }: Props) {
           done={step1}
           active={!step1}
           title="Link a bank account"
-          desc="Read-only via Plaid. On sandbox, sign in with user_good / pass_good."
+          desc="Read-only via Plaid — sign in with your bank credentials."
         >
           <LinkButton onLinked={onReload} />
         </Step>
