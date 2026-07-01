@@ -39,20 +39,23 @@ export default function Home() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [analytics, setAnalytics] = useState<Analytics>({});
   const [netWorth, setNetWorth] = useState<number | null>(null);
+  const [runway, setRunway] = useState<any>(null);
   const [txns, setTxns] = useState<Txn[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState('');
 
   const load = useCallback(async () => {
-    const [s, a, acc, t] = await Promise.all([
+    const [s, a, acc, rw, t] = await Promise.all([
       fetch('/api/summary').then((r) => r.json()),
       fetch('/api/analytics').then((r) => r.json()),
       fetch('/api/accounts').then((r) => r.json()),
+      fetch('/api/runway').then((r) => r.json()),
       fetch('/api/plaid/transactions').then((r) => r.json()),
     ]);
     setSummary(s);
     setAnalytics(a || {});
     setNetWorth(acc?.configured ? acc.netWorth ?? null : null);
+    setRunway(rw?.configured ? rw : null);
     setTxns((t.transactions || []).slice(0, 8));
   }, []);
 
@@ -102,6 +105,41 @@ export default function Home() {
 
       {configured && !hasData && (
         <Onboarding summary={summary} busy={busy} onReload={load} onRun={run} note={note} />
+      )}
+
+      {hasData && runway && runway.burnPerMonth > 0 && (
+        <section className="card" style={{ borderColor: 'var(--warn)' }}>
+          <div className="row">
+            <h2 style={{ margin: 0, fontSize: 16 }}>Burn &amp; runway</h2>
+            <span className="sev warn">deficit</span>
+          </div>
+          <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
+            You&apos;re spending about{' '}
+            <strong style={{ color: 'var(--text)' }}>${runway.burnPerMonth.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</strong>{' '}
+            more than you earn (income ${runway.monthlyIncome.toFixed(0)}/mo vs spend ${runway.monthlySpend.toFixed(0)}/mo, median).
+          </p>
+          <div className="grid" style={{ marginTop: 14 }}>
+            <div className="stat">
+              <div className="label">Monthly burn</div>
+              <div className="value" style={{ color: 'var(--high)' }}>−${runway.burnPerMonth.toFixed(0)}</div>
+            </div>
+            <div className="stat">
+              <div className="label">Liquid cash (linked)</div>
+              <div className="value">${runway.liquidCash.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            </div>
+            <div className="stat">
+              <div className="label">Runway</div>
+              <div className="value">
+                {runway.runwayMonths != null ? `${runway.runwayMonths} mo` : '—'}
+              </div>
+            </div>
+          </div>
+          <p className="muted" style={{ marginTop: 12, fontSize: 13 }}>
+            Runway is based on <strong style={{ color: 'var(--text)' }}>${runway.liquidCash.toFixed(0)}</strong> in
+            linked accounts. Link your savings account for an accurate figure — your real runway is
+            almost certainly longer.
+          </p>
+        </section>
       )}
 
       {savings > 0 && (
