@@ -8,6 +8,7 @@ const LS_KEY = 'plaid_link_token';
 export function LinkButton({ onLinked }: { onLinked: () => void }) {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [oauthReturn, setOauthReturn] = useState(false);
+  const [err, setErr] = useState('');
 
   useEffect(() => {
     // OAuth banks redirect back here with ?oauth_state_id=… — resume the same
@@ -46,9 +47,24 @@ export function LinkButton({ onLinked }: { onLinked: () => void }) {
     [onLinked],
   );
 
+  const onExit = useCallback((error: any, metadata: any) => {
+    // eslint-disable-next-line no-console
+    console.log('[plaid] exit', error, metadata);
+    if (error) {
+      setErr(`${error.error_code || 'exit'}: ${error.error_message || error.display_message || 'Link closed'}`);
+    }
+  }, []);
+
+  const onEvent = useCallback((name: string, metadata: any) => {
+    // eslint-disable-next-line no-console
+    console.log('[plaid] event', name, metadata);
+  }, []);
+
   const { open, ready } = usePlaidLink({
     token: linkToken,
     onSuccess,
+    onExit,
+    onEvent,
     ...(oauthReturn && typeof window !== 'undefined'
       ? { receivedRedirectUri: window.location.href }
       : {}),
@@ -60,8 +76,11 @@ export function LinkButton({ onLinked }: { onLinked: () => void }) {
   }, [oauthReturn, ready, open]);
 
   return (
-    <button className="btn" disabled={!ready} onClick={() => open()}>
-      Link a bank account
-    </button>
+    <>
+      <button className="btn" disabled={!ready} onClick={() => { setErr(''); open(); }}>
+        Link a bank account
+      </button>
+      {err && <p className="muted" style={{ color: 'var(--high)', marginTop: 8 }}>{err}</p>}
+    </>
   );
 }
