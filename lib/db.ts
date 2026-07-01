@@ -2,18 +2,26 @@ import { supabaseAdmin } from './supabase';
 import { annualCost } from './analysis/recurring';
 import type { DetectedStream, InsightDraft, Txn } from './analysis/types';
 
-// Fetch all non-pending-aware transactions needed by the analysis engine.
+// Fetch ALL transactions needed by the analysis engine. PostgREST caps a single
+// response at ~1000 rows regardless of .limit(), so we page through with range().
 export async function getTransactions(): Promise<Txn[]> {
   const db = supabaseAdmin();
-  const { data, error } = await db
-    .from('transactions')
-    .select(
-      'transaction_id, date, amount, name, merchant_name, normalized_merchant, pfc_primary, is_discretionary, pending',
-    )
-    .order('date', { ascending: true })
-    .limit(10000);
-  if (error) throw new Error(error.message);
-  return (data || []).map((t) => ({ ...t, amount: Number(t.amount) })) as Txn[];
+  const PAGE = 1000;
+  const all: Txn[] = [];
+  for (let offset = 0; ; offset += PAGE) {
+    const { data, error } = await db
+      .from('transactions')
+      .select(
+        'transaction_id, date, amount, name, merchant_name, normalized_merchant, pfc_primary, is_discretionary, pending',
+      )
+      .order('date', { ascending: true })
+      .range(offset, offset + PAGE - 1);
+    if (error) throw new Error(error.message);
+    const rows = (data || []).map((t) => ({ ...t, amount: Number(t.amount) })) as Txn[];
+    all.push(...rows);
+    if (rows.length < PAGE) break;
+  }
+  return all;
 }
 
 // Upsert detected streams, preserving any user feedback (user_status) already set.

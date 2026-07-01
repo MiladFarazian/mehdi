@@ -75,9 +75,15 @@ function newRecurring(streams: DetectedStream[], today: string): InsightDraft[] 
   return out;
 }
 
+// Overlap only makes sense for categories where you'd pick one service, not for
+// e.g. food or rent.
+const DUPLICATE_CATEGORIES = new Set(['ENTERTAINMENT', 'GENERAL_SERVICES']);
+
 // 3. Duplicate / overlapping services — multiple active subs in one category.
 function duplicateServices(streams: DetectedStream[]): InsightDraft[] {
-  const active = streams.filter((s) => s.status !== 'ended' && s.category);
+  const active = streams.filter(
+    (s) => s.status !== 'ended' && s.category && DUPLICATE_CATEGORIES.has(s.category),
+  );
   const byCat = new Map<string, DetectedStream[]>();
   for (const s of active) {
     const c = s.category!;
@@ -132,6 +138,8 @@ function categoryOverspend(txns: Txn[], today: string): InsightDraft[] {
   const baselines = categoryBaselines(categoryMonthlyTotals(txns), month);
   const out: InsightDraft[] = [];
   for (const b of baselines) {
+    // Skip non-discretionary categories you can't really "cut back" on.
+    if (b.category === 'GOVERNMENT_AND_NON_PROFIT') continue;
     const threshold = b.baselineMedian + OVERSPEND_K * b.baselineMad;
     if (b.latestTotal <= threshold || b.deltaVsBaseline <= 0) continue;
     out.push({

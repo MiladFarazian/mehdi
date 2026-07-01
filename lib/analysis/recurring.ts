@@ -12,7 +12,22 @@ const PERIODS = [
 
 const MIN_OCCURRENCES = 3;
 const INTERVAL_TOLERANCE = 0.25; // gaps may vary ±25% from the matched period
-const AMOUNT_CV_MAX = 0.35; // charge amounts must be reasonably stable
+const AMOUNT_CV_MAX = 0.15; // real subscriptions bill a near-constant amount
+
+// Categories that are recurring but NOT cancelable subscriptions — excluding
+// them stops frequent restaurants, rideshare, and rent from being flagged as
+// "subscriptions" (a common false positive on real bank data).
+const NON_SUBSCRIPTION_CATEGORIES = new Set([
+  'FOOD_AND_DRINK',
+  'TRANSPORTATION',
+  'RENT_AND_UTILITIES',
+  'LOAN_PAYMENTS',
+  'TRANSFER_IN',
+  'TRANSFER_OUT',
+  'INCOME',
+  'BANK_FEES',
+  'GOVERNMENT_AND_NON_PROFIT',
+]);
 
 function matchPeriod(medianGap: number): (typeof PERIODS)[number] | null {
   let best: (typeof PERIODS)[number] | null = null;
@@ -53,6 +68,10 @@ export function detectRecurringStreams(
   for (const [merchant, groupRaw] of byMerchant) {
     const group = [...groupRaw].sort((a, b) => (a.date < b.date ? -1 : 1));
     if (group.length < MIN_OCCURRENCES) continue;
+
+    // Skip categories that are recurring but not subscriptions (dining, rent…).
+    const groupCategory = group[group.length - 1].pfc_primary;
+    if (kind === 'spend' && groupCategory && NON_SUBSCRIPTION_CATEGORIES.has(groupCategory)) continue;
 
     const gaps: number[] = [];
     for (let i = 1; i < group.length; i++) {
