@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/transactions', label: 'Transactions' },
   { href: '/subscriptions', label: 'Subscriptions' },
   { href: '/budgets', label: 'Budgets' },
+  { href: '/goals', label: 'Goals' },
   { href: '/insights', label: 'Insights' },
   { href: '/chat', label: 'Advisor' },
 ];
@@ -33,6 +34,7 @@ export function Nav() {
         </Link>
       ))}
       <span className="spacer" />
+      <Link href="/settings" className={path === '/settings' ? 'active' : ''} title="Settings" aria-label="Settings">⚙</Link>
       <ThemeToggle />
       <a onClick={signOut} style={{ cursor: 'pointer' }}>Sign out</a>
     </nav>
