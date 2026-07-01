@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Nav } from '@/components/Nav';
 
 type Txn = {
   id: string;
   date: string;
   name: string;
+  merchant: string | null;
   amount: number;
   category: string;
   pending: boolean;
@@ -97,7 +99,16 @@ export default function TransactionsPage() {
               {txns.map((t) => (
                 <tr key={t.id}>
                   <td>{t.date}</td>
-                  <td>{t.name}{t.pending ? ' (pending)' : ''}</td>
+                  <td>
+                    {t.merchant ? (
+                      <Link href={`/merchants?m=${encodeURIComponent(t.merchant)}`} style={{ color: 'var(--accent)', textDecoration: 'none' }}>
+                        {t.name}
+                      </Link>
+                    ) : (
+                      t.name
+                    )}
+                    {t.pending ? ' (pending)' : ''}
+                  </td>
                   <td><span className="tag">{pretty(t.category)}</span></td>
                   <td className="r">{fmt(t.amount)}</td>
                 </tr>

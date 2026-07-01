@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     const db = supabaseAdmin();
     let q = db
       .from('transactions')
-      .select('transaction_id, date, merchant_name, name, amount, pfc_primary, pending', {
+      .select('transaction_id, date, merchant_name, name, normalized_merchant, amount, pfc_primary, pending', {
         count: 'exact',
       })
       .order('date', { ascending: false });
@@ -41,6 +41,7 @@ export async function GET(req: Request) {
       id: t.transaction_id,
       date: t.date,
       name: t.merchant_name || t.name,
+      merchant: t.normalized_merchant,
       amount: Number(t.amount),
       category: t.pfc_primary || 'UNCATEGORIZED',
       pending: t.pending,
