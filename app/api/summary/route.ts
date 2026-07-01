@@ -19,7 +19,7 @@ export async function GET() {
       db.from('accounts').select('account_id', { count: 'exact', head: true }),
       db
         .from('recurring_streams')
-        .select('frequency, avg_amount')
+        .select('frequency, avg_amount, user_status')
         .eq('is_subscription', true)
         .in('status', ['active', 'late']),
       db.from('insights').select('id', { count: 'exact', head: true }).eq('status', 'new'),
@@ -30,7 +30,7 @@ export async function GET() {
         .lt('date', nextMonthStart(month)),
     ]);
 
-    const subs = streams.data || [];
+    const subs = (streams.data || []).filter((s) => s.user_status !== 'not_subscription');
     const monthlySubCost = subs.reduce(
       (a, s) => a + annualCost({ frequency: s.frequency, avg_amount: Number(s.avg_amount) }) / 12,
       0,

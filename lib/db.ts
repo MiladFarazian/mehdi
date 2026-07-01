@@ -96,11 +96,13 @@ export async function getStreams() {
     .order('avg_amount', { ascending: false })
     .limit(500);
   if (error) throw new Error(error.message);
-  // attach annualized cost for convenience
-  return (data || []).map((s) => ({
-    ...s,
-    annual_cost: annualCost({ frequency: s.frequency, avg_amount: Number(s.avg_amount) }),
-  }));
+  // attach annualized cost; drop anything the user flagged as not-a-subscription
+  return (data || [])
+    .filter((s) => s.user_status !== 'not_subscription')
+    .map((s) => ({
+      ...s,
+      annual_cost: annualCost({ frequency: s.frequency, avg_amount: Number(s.avg_amount) }),
+    }));
 }
 
 // Recurring inflows (paychecks etc.), stored with is_subscription = false.

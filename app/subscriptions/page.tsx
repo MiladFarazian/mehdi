@@ -39,7 +39,12 @@ export default function SubscriptionsPage() {
   }, [load]);
 
   const setStatus = async (id: string, user_status: string) => {
-    setSubs((prev) => prev.map((s) => (s.id === id ? { ...s, user_status } : s)));
+    // "Not a subscription" removes it from the list entirely (and permanently).
+    if (user_status === 'not_subscription') {
+      setSubs((prev) => prev.filter((s) => s.id !== id));
+    } else {
+      setSubs((prev) => prev.map((s) => (s.id === id ? { ...s, user_status } : s)));
+    }
     await fetch(`/api/subscriptions/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -111,6 +116,9 @@ export default function SubscriptionsPage() {
                   </button>
                   <button className={`chip ${s.user_status === 'cancel' ? 'on' : ''}`} onClick={() => setStatus(s.id, 'cancel')}>
                     Plan to cancel
+                  </button>
+                  <button className="chip" onClick={() => setStatus(s.id, 'not_subscription')}>
+                    Not a subscription
                   </button>
                 </div>
               </div>

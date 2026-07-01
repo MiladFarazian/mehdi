@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     const { user_status } = await req.json();
-    if (!['using', 'not_using', 'keep', 'cancel'].includes(user_status)) {
+    if (!['using', 'not_using', 'keep', 'cancel', 'not_subscription'].includes(user_status)) {
       return NextResponse.json({ error: 'invalid user_status' }, { status: 400 });
     }
     const db = supabaseAdmin();
