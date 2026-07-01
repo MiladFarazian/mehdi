@@ -12,7 +12,7 @@ export async function getTransactions(): Promise<Txn[]> {
     const { data, error } = await db
       .from('transactions')
       .select(
-        'transaction_id, date, amount, name, merchant_name, normalized_merchant, pfc_primary, is_discretionary, pending',
+        'transaction_id, date, amount, name, merchant_name, normalized_merchant, pfc_primary, is_discretionary, pending, logo_url',
       )
       .order('date', { ascending: true })
       .range(offset, offset + PAGE - 1);
@@ -44,6 +44,7 @@ export async function upsertStreams(streams: DetectedStream[]): Promise<void> {
     status: s.status,
     confidence: s.confidence,
     is_subscription: s.is_subscription,
+    logo_url: s.logo_url,
   }));
   const { error } = await db
     .from('recurring_streams')

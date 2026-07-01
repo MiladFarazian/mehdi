@@ -227,3 +227,7 @@ table.txns td.r, table.txns th.r { text-align: right; font-variant-numeric: tabu
 .health .dot.fail { background: var(--high); }
 .health .hname { font-weight: 600; }
 .health .hnote { color: var(--muted); font-size: 13px; margin-left: auto; text-align: right; }
+
+/* ── Merchant logos ── */
+.logo-img { border-radius: 6px; object-fit: contain; background: #fff; border: 1px solid var(--border); }
+.logo-ph { border-radius: 6px; background: var(--tag); display: inline-block; }

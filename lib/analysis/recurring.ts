@@ -123,6 +123,7 @@ export function detectRecurringStreams(
       status,
       confidence,
       is_subscription: kind === 'spend',
+      logo_url: group.map((t) => t.logo_url).find(Boolean) ?? null,
     });
   }
 

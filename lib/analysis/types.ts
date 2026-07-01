@@ -10,6 +10,7 @@ export type Txn = {
   pfc_primary: string | null;
   is_discretionary: boolean | null;
   pending: boolean | null;
+  logo_url?: string | null;
 };
 
 export type DetectedStream = {
@@ -28,6 +29,7 @@ export type DetectedStream = {
   status: 'active' | 'late' | 'ended';
   confidence: number;
   is_subscription: boolean;
+  logo_url: string | null;
 };
 
 export type InsightDraft = {

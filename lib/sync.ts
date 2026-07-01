@@ -28,9 +28,16 @@ async function syncAccounts(itemId: string, accessToken: string): Promise<void> 
 }
 
 function toRow(t: Transaction) {
-  // Fall back to our own categorizer when Plaid returns OTHER/null.
+  // Prefer Plaid's verified merchant counterparty for a clean identity
+  // (e.g. raw "TST*BELLES" → "Belle's"). Falls back to merchant_name/name.
+  const merchantCp = (t.counterparties || []).find((c) => `${c.type}` === 'merchant');
+  const bestName = merchantCp?.name || t.merchant_name || t.name || '';
+  const cpNames = (t.counterparties || []).map((c) => c.name).filter(Boolean).join(' ');
+
+  // Categorize with all available signal, falling back to our keyword rules
+  // when Plaid returns OTHER/null.
   const primary = inferCategory(
-    `${t.merchant_name || ''} ${t.name || ''}`,
+    `${bestName} ${t.merchant_name || ''} ${t.name || ''} ${cpNames}`,
     t.personal_finance_category?.primary ?? null,
   );
   return {
@@ -41,12 +48,19 @@ function toRow(t: Transaction) {
     amount: t.amount,
     iso_currency_code: t.iso_currency_code,
     name: t.name,
-    merchant_name: t.merchant_name,
-    normalized_merchant: normalizeMerchant(t.merchant_name || t.name),
+    merchant_name: bestName || null,
+    normalized_merchant: normalizeMerchant(bestName),
     pfc_primary: primary,
     pfc_detailed: t.personal_finance_category?.detailed ?? null,
+    pfc_confidence: t.personal_finance_category?.confidence_level ?? null,
     is_discretionary: isDiscretionary(primary),
     pending: t.pending,
+    logo_url: t.logo_url ?? merchantCp?.logo_url ?? null,
+    website: t.website ?? merchantCp?.website ?? null,
+    merchant_entity_id: t.merchant_entity_id ?? merchantCp?.entity_id ?? null,
+    payment_channel: t.payment_channel ?? null,
+    counterparties: t.counterparties ?? null,
+    location: t.location ?? null,
   };
 }
 

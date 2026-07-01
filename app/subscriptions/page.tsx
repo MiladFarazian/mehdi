@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Nav } from '@/components/Nav';
+import { Logo } from '@/components/Logo';
 
 type Sub = {
   id: string;
@@ -14,6 +15,7 @@ type Sub = {
   expected_next: string | null;
   annual_cost: number;
   user_status: string | null;
+  logo_url: string | null;
 };
 
 function daysUntil(date: string): number {
@@ -98,6 +100,7 @@ export default function SubscriptionsPage() {
           const hike = s.last_amount > s.first_amount;
           return (
             <div className="sub" key={s.id}>
+              <Logo url={s.logo_url} />
               <div>
                 <div className="name">{s.display_name}</div>
                 <div className="meta">

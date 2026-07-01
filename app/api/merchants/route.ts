@@ -15,7 +15,10 @@ export async function GET(req: Request) {
     const subs = new Map(streams.map((s) => [s.normalized_merchant, s]));
 
     if (!m) {
-      const agg = new Map<string, { total: number; count: number; last: string; name: string }>();
+      const agg = new Map<
+        string,
+        { total: number; count: number; last: string; name: string; logo: string | null }
+      >();
       for (const t of txns) {
         if (t.amount <= 0 || t.pending || !t.normalized_merchant) continue;
         const e = agg.get(t.normalized_merchant) || {
@@ -23,10 +26,12 @@ export async function GET(req: Request) {
           count: 0,
           last: t.date,
           name: t.merchant_name || t.normalized_merchant,
+          logo: null,
         };
         e.total += t.amount;
         e.count += 1;
         if (t.date > e.last) e.last = t.date;
+        if (!e.logo && t.logo_url) e.logo = t.logo_url;
         agg.set(t.normalized_merchant, e);
       }
       const merchants = [...agg.entries()]
@@ -36,6 +41,7 @@ export async function GET(req: Request) {
           total: Number(e.total.toFixed(2)),
           count: e.count,
           last: e.last,
+          logo_url: e.logo,
           isSubscription: subs.has(merchant),
         }))
         .sort((a, b) => b.total - a.total);
@@ -62,6 +68,7 @@ export async function GET(req: Request) {
       configured: true,
       merchant: m,
       display_name: titleCase(rows[0]?.merchant_name || m),
+      logo_url: rows.map((r) => r.logo_url).find(Boolean) ?? null,
       total: Number(total.toFixed(2)),
       count: spend.length,
       avg: amounts.length ? Number((total / amounts.length).toFixed(2)) : 0,

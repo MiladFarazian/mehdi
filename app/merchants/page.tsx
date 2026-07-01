@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Nav } from '@/components/Nav';
+import { Logo } from '@/components/Logo';
 import { TrendBars } from '@/components/charts';
 
 const fmt = (a: number) => `${a < 0 ? '+' : '-'}$${Math.abs(a).toFixed(2)}`;
@@ -25,7 +26,10 @@ function Detail({ m }: { m: string }) {
       {d && (
         <>
           <header>
-            <h1>{d.display_name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Logo url={d.logo_url} size={32} />
+              <h1 style={{ margin: 0 }}>{d.display_name}</h1>
+            </div>
             <p className="muted">
               ${Number(d.total).toFixed(0)} total · {d.count} charges · avg ${Number(d.avg).toFixed(2)} · range ${Number(d.min).toFixed(2)}–${Number(d.max).toFixed(2)}
             </p>
@@ -85,11 +89,12 @@ function List() {
         {d && merchants.length === 0 && <p className="muted">No merchants match.</p>}
         {merchants.map((x: any) => (
           <Link href={`/merchants?m=${encodeURIComponent(x.merchant)}`} key={x.merchant} className="sub" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Logo url={x.logo_url} />
             <div>
               <div className="name">{x.display_name}{x.isSubscription ? ' 🔁' : ''}</div>
               <div className="meta">{x.count} charges · last {x.last}</div>
             </div>
-            <div className="cost" style={{ fontWeight: 700 }}>${x.total.toFixed(0)}</div>
+            <div className="cost" style={{ fontWeight: 700, marginLeft: 'auto' }}>${x.total.toFixed(0)}</div>
           </Link>
         ))}
       </section>
