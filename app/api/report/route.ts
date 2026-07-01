@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseConfigured } from '@/lib/supabase';
 import { getInsights, getStreams, getTransactions } from '@/lib/db';
 import { listBudgets } from '@/lib/budgets';
-import { NON_SPEND_CATEGORIES, titleCase } from '@/lib/analysis/normalize';
+import { NON_INCOME_CATEGORIES, NON_SPEND_CATEGORIES, titleCase } from '@/lib/analysis/normalize';
 import { monthKey } from '@/lib/analysis/stats';
 import { lastCompleteMonth } from '@/lib/analysis/baselines';
 import { today } from '@/lib/today';
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     const cat = new Map<string, number>();
     const merch = new Map<string, { total: number; count: number; name: string }>();
     for (const t of rows) {
-      if (t.amount < 0) income += Math.abs(t.amount);
+      if (t.amount < 0 && !NON_INCOME_CATEGORIES.has(t.pfc_primary || '')) income += Math.abs(t.amount);
       else if (t.amount > 0 && !NON_SPEND_CATEGORIES.has(t.pfc_primary || '')) {
         spend += t.amount;
         const c = t.pfc_primary || 'UNCATEGORIZED';

@@ -2,7 +2,7 @@ import { getInsights, getStreams, getTransactions } from '../db';
 import { supabaseAdmin } from '../supabase';
 import { listBudgets } from '../budgets';
 import { categoryMonthlyTotals } from '../analysis/baselines';
-import { NON_SPEND_CATEGORIES } from '../analysis/normalize';
+import { NON_INCOME_CATEGORIES, NON_SPEND_CATEGORIES } from '../analysis/normalize';
 import { monthKey } from '../analysis/stats';
 import { today } from '../today';
 
@@ -50,7 +50,7 @@ export async function buildFinancialContext() {
     const m = monthKey(t.date);
     if (t.amount > 0 && !NON_SPEND_CATEGORIES.has(t.pfc_primary || '')) {
       spendByMonth.set(m, (spendByMonth.get(m) || 0) + t.amount);
-    } else if (t.amount < 0) {
+    } else if (t.amount < 0 && !NON_INCOME_CATEGORIES.has(t.pfc_primary || '')) {
       incomeByMonth.set(m, (incomeByMonth.get(m) || 0) + Math.abs(t.amount));
     }
   }

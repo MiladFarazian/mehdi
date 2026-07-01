@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseConfigured } from '@/lib/supabase';
 import { deleteGoal, goalsTableExists, listGoals, upsertGoal } from '@/lib/goals';
 import { getTransactions } from '@/lib/db';
-import { NON_SPEND_CATEGORIES } from '@/lib/analysis/normalize';
+import { NON_INCOME_CATEGORIES, NON_SPEND_CATEGORIES } from '@/lib/analysis/normalize';
 import { mean, monthKey } from '@/lib/analysis/stats';
 import { today } from '@/lib/today';
 
@@ -18,7 +18,7 @@ async function avgMonthlyNet(): Promise<number> {
     const m = monthKey(t.date);
     if (t.amount > 0 && !NON_SPEND_CATEGORIES.has(t.pfc_primary || '')) {
       spend.set(m, (spend.get(m) || 0) + t.amount);
-    } else if (t.amount < 0) {
+    } else if (t.amount < 0 && !NON_INCOME_CATEGORIES.has(t.pfc_primary || '')) {
       income.set(m, (income.get(m) || 0) + Math.abs(t.amount));
     }
   }

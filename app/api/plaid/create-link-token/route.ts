@@ -9,6 +9,9 @@ export async function POST() {
       user: { client_user_id: 'phase0-user' },
       client_name: 'mehdi',
       products: [Products.Transactions],
+      // Consent to Liabilities too (APR, statement balance, due date) without
+      // requiring it, so credit-card details are available after linking.
+      additional_consented_products: [Products.Liabilities],
       country_codes: [CountryCode.Us],
       language: 'en',
       // Pull up to 24 months of history (default is only 90 days) so the

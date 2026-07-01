@@ -38,6 +38,15 @@ export const NON_SPEND_CATEGORIES = new Set([
   'LOAN_PAYMENTS',
 ]);
 
+// Inflows in these categories are NOT real income — internal transfers between
+// your own accounts and credit-card payments. Excluding them keeps the cash-flow
+// "income" honest (earned money, not money you moved around).
+export const NON_INCOME_CATEGORIES = new Set([
+  'TRANSFER_IN',
+  'TRANSFER_OUT',
+  'LOAN_PAYMENTS',
+]);
+
 export function isDiscretionary(pfcPrimary: string | null | undefined): boolean {
   if (!pfcPrimary) return true;
   if (NON_SPEND_CATEGORIES.has(pfcPrimary)) return false;

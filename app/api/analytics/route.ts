@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseConfigured } from '@/lib/supabase';
 import { getInsights, getTransactions } from '@/lib/db';
-import { NON_SPEND_CATEGORIES } from '@/lib/analysis/normalize';
+import { NON_INCOME_CATEGORIES, NON_SPEND_CATEGORIES } from '@/lib/analysis/normalize';
 import { lastCompleteMonth } from '@/lib/analysis/baselines';
 import { monthKey } from '@/lib/analysis/stats';
 import { today } from '@/lib/today';
@@ -22,7 +22,7 @@ export async function GET() {
       const m = monthKey(t.date);
       if (t.amount > 0 && !NON_SPEND_CATEGORIES.has(t.pfc_primary || '')) {
         spendByMonth.set(m, (spendByMonth.get(m) || 0) + t.amount);
-      } else if (t.amount < 0) {
+      } else if (t.amount < 0 && !NON_INCOME_CATEGORIES.has(t.pfc_primary || '')) {
         incomeByMonth.set(m, (incomeByMonth.get(m) || 0) + Math.abs(t.amount));
       }
     }
