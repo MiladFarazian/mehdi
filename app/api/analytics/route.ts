@@ -41,6 +41,35 @@ export async function GET() {
       return { month: m, income, spend, net: Number((income - spend).toFixed(2)) };
     });
 
+    // Day-of-week spending patterns (avg spend per that weekday)
+    const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dowTotal = new Array(7).fill(0);
+    const dowDates: Set<string>[] = Array.from({ length: 7 }, () => new Set<string>());
+    for (const t of txns) {
+      if (t.pending || t.amount <= 0 || NON_SPEND_CATEGORIES.has(t.pfc_primary || '')) continue;
+      const dow = new Date(`${t.date}T00:00:00Z`).getUTCDay();
+      dowTotal[dow] += t.amount;
+      dowDates[dow].add(t.date);
+    }
+    const order = [1, 2, 3, 4, 5, 6, 0]; // Mon … Sun
+    const byDayOfWeek = order.map((i) => ({
+      label: DOW[i],
+      total: Number(dowTotal[i].toFixed(2)),
+      avgPerDay: dowDates[i].size ? Number((dowTotal[i] / dowDates[i].size).toFixed(2)) : 0,
+    }));
+    const sum = (idx: number[], arr: number[]) => idx.reduce((s, i) => s + arr[i], 0);
+    const weekdayDays = sum([1, 2, 3, 4, 5], dowDates.map((s) => s.size));
+    const weekendDays = sum([0, 6], dowDates.map((s) => s.size));
+    const weekdayAvg = weekdayDays ? sum([1, 2, 3, 4, 5], dowTotal) / weekdayDays : 0;
+    const weekendAvg = weekendDays ? sum([0, 6], dowTotal) / weekendDays : 0;
+    const priciestDay = [...byDayOfWeek].sort((a, b) => b.avgPerDay - a.avgPerDay)[0]?.label ?? null;
+    const spendingPatterns = {
+      byDayOfWeek,
+      weekdayAvg: Number(weekdayAvg.toFixed(2)),
+      weekendAvg: Number(weekendAvg.toFixed(2)),
+      priciestDay,
+    };
+
     const lcm = lastCompleteMonth(today());
     const catTotals = new Map<string, number>();
     for (const t of txns) {
@@ -71,6 +100,7 @@ export async function GET() {
       savingsCount: savingsInsights.length,
       monthlyTrend,
       monthlyCashflow,
+      spendingPatterns,
       topCategories,
       lastCompleteMonth: lcm,
       income: Number((incomeByMonth.get(lcm) || 0).toFixed(2)),

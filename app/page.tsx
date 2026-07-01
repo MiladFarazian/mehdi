@@ -23,6 +23,12 @@ type Analytics = {
   savingsCount?: number;
   monthlyTrend?: { month: string; spend: number }[];
   monthlyCashflow?: { month: string; income: number; spend: number; net: number }[];
+  spendingPatterns?: {
+    byDayOfWeek: { label: string; total: number; avgPerDay: number }[];
+    weekdayAvg: number;
+    weekendAvg: number;
+    priciestDay: string | null;
+  };
   topCategories?: { category: string; total: number }[];
   income?: number;
   spend?: number;
@@ -143,6 +149,25 @@ export default function Home() {
             <BarList items={(analytics.topCategories ?? []).map((c) => ({ label: c.category, value: c.total }))} />
           </section>
         </div>
+      )}
+
+      {hasData && analytics.spendingPatterns && (
+        <section className="card">
+          <h2 style={{ margin: '0 0 4px', fontSize: 16 }}>Spending patterns</h2>
+          <p className="muted" style={{ fontSize: 13 }}>
+            Average spend per weekday
+            {analytics.spendingPatterns.priciestDay
+              ? ` · priciest day: ${analytics.spendingPatterns.priciestDay}`
+              : ''}
+          </p>
+          <BarList
+            items={analytics.spendingPatterns.byDayOfWeek.map((d) => ({ label: d.label, value: d.avgPerDay }))}
+          />
+          <p className="muted" style={{ marginTop: 12, fontSize: 13 }}>
+            Weekends average <strong style={{ color: 'var(--text)' }}>${analytics.spendingPatterns.weekendAvg.toFixed(0)}</strong>/day vs{' '}
+            <strong style={{ color: 'var(--text)' }}>${analytics.spendingPatterns.weekdayAvg.toFixed(0)}</strong>/day on weekdays.
+          </p>
+        </section>
       )}
 
       {hasData && (analytics.monthlyCashflow?.some((c) => c.income > 0) ?? false) && (
