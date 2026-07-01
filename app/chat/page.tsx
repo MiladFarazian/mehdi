@@ -1,22 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Nav } from '@/components/Nav';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
-const EXAMPLES = [
-  'How much did I spend on takeout last month?',
-  'What can I cut back on?',
-  'Which subscriptions should I cancel?',
-  'Where is my spending creeping up?',
+const BASE = [
+  'What can I cut back on this month?',
+  'How much am I saving each month?',
+  'How is my net worth looking?',
 ];
+
+// Starter questions tuned to what the analysis actually found.
+const BY_INSIGHT: Record<string, string> = {
+  price_creep: 'Which of my subscriptions went up in price?',
+  duplicate_services: 'Which of my subscriptions overlap?',
+  budget_exceeded: 'Why am I over budget this month?',
+  category_overspend: 'What category did I overspend on, and why?',
+  new_recurring: 'What new recurring charges started recently?',
+  small_leaks: 'Where are my small charges quietly adding up?',
+  annual_renewal: 'What annual charges are coming up?',
+  lifestyle_creep: 'Is my spending creeping up over time?',
+};
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>(BASE);
+
+  useEffect(() => {
+    fetch('/api/insights')
+      .then((r) => r.json())
+      .then((d) => {
+        const types = [...new Set((d.insights || []).filter((i: any) => i.status !== 'dismissed').map((i: any) => i.type))];
+        const fromData = types.map((t) => BY_INSIGHT[t as string]).filter(Boolean) as string[];
+        const merged = [...new Set([...fromData, ...BASE])].slice(0, 5);
+        if (merged.length) setSuggestions(merged);
+      })
+      .catch(() => {});
+  }, []);
 
   const send = async (text: string) => {
     const content = text.trim();
@@ -65,7 +89,7 @@ export default function ChatPage() {
 
         {messages.length === 0 && (
           <div className="examples">
-            {EXAMPLES.map((e) => (
+            {suggestions.map((e) => (
               <button key={e} className="btn ghost" onClick={() => send(e)}>
                 {e}
               </button>

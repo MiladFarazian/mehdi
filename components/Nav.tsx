@@ -13,6 +13,7 @@ const LINKS = [
   { href: '/budgets', label: 'Budgets' },
   { href: '/goals', label: 'Goals' },
   { href: '/insights', label: 'Insights' },
+  { href: '/report', label: 'Report' },
   { href: '/chat', label: 'Advisor' },
 ];
 

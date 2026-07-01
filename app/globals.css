@@ -194,3 +194,13 @@ table.txns td.r, table.txns th.r { text-align: right; font-variant-numeric: tabu
   .sub { flex-wrap: wrap; }
   .filter-input { min-width: 0; flex: 1; }
 }
+
+/* ── Print (monthly report) ── */
+@media print {
+  :root { --bg: #fff; --card: #fff; --text: #111; --muted: #555; --border: #ccc; --tag: #eee; }
+  .noprint { display: none !important; }
+  body { background: #fff; color: #111; }
+  .card, .stat { border: 1px solid #ddd; break-inside: avoid; }
+  .container { max-width: 100%; padding: 0; }
+  a { color: #111 !important; text-decoration: none; }
+}
