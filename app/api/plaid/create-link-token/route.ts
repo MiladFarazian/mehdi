@@ -17,6 +17,9 @@ export async function POST() {
       // When deployed with a public URL, register the webhook so new
       // transactions sync automatically. Ignored locally if unset.
       ...(process.env.PLAID_WEBHOOK_URL ? { webhook: process.env.PLAID_WEBHOOK_URL } : {}),
+      // Required for OAuth banks (Chase, BofA, etc.) — must be an HTTPS URL
+      // registered in the Plaid dashboard's allowed redirect URIs.
+      ...(process.env.PLAID_REDIRECT_URI ? { redirect_uri: process.env.PLAID_REDIRECT_URI } : {}),
     });
     return NextResponse.json({ link_token: res.data.link_token });
   } catch (err: any) {
