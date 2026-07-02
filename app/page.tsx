@@ -114,9 +114,12 @@ export default function Home() {
             <span className="sev warn">deficit</span>
           </div>
           <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
-            You&apos;re spending about{' '}
+            Your <strong style={{ color: 'var(--text)' }}>personal</strong> spending is about{' '}
             <strong style={{ color: 'var(--text)' }}>${runway.burnPerMonth.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</strong>{' '}
-            more than you earn (income ${runway.monthlyIncome.toFixed(0)}/mo vs spend ${runway.monthlySpend.toFixed(0)}/mo, median).
+            more than you earn (income ${runway.monthlyIncome.toFixed(0)}/mo vs personal spend ${runway.monthlySpend.toFixed(0)}/mo, median).
+            {runway.monthlyBusinessSpend > 0 && (
+              <> Business spend excluded: <strong style={{ color: 'var(--text)' }}>${runway.monthlyBusinessSpend.toFixed(0)}/mo</strong>.</>
+            )}
           </p>
           <div className="grid" style={{ marginTop: 14 }}>
             <div className="stat">
