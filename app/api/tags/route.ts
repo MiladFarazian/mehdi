@@ -42,7 +42,7 @@ export async function GET() {
         suggested: !tagMap[merchant] && suggestBusiness(`${merchant} ${e.name}`) ? 'business' : null,
       }))
       .sort((a, b) => b.total - a.total)
-      .slice(0, 80);
+      .slice(0, 250);
 
     const businessTagged = Object.values(tagMap).filter((t) => t === 'business').length;
     return NextResponse.json({ configured: true, tableExists: true, merchants, businessTagged });
